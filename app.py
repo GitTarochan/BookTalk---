@@ -63,6 +63,8 @@ if st.session_state["page"] == "search":
             for item in st.session_state["search_results"][:5]:
                 book = item["volumeInfo"]
                 book_id = item["id"]
+                # ★ここを追加！ (IDを本の情報の中に無理やり入れ込む)
+                book["id"] = book_id
                 
                 title = book.get("title", "タイトル不明")
                 authors = book.get("authors", ["著者不明"])
