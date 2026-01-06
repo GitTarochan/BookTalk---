@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import streamlit.components.v1 as components  # ← ★これを追加！
 
 # ページ設定（ブラウザのタブ名などを設定）
 st.set_page_config(page_title="BookTalk", page_icon="📚")
@@ -99,10 +100,9 @@ elif st.session_state["page"] == "room":
         st.rerun()
 
     # 部屋のデザイン
-    st.title("🍵 対話ルーム（待機中）")
-    st.success("入室しました！同じ本を読んだ人が来るのを待ちましょう。")
+    st.title("🍵 対話ルーム")
     
-    # 選んだ本の情報をドーンと表示
+    # 選んだ本の情報を表示
     col1, col2 = st.columns([1, 2])
     with col1:
         image_url = book.get("imageLinks", {}).get("thumbnail", "")
@@ -111,10 +111,34 @@ elif st.session_state["page"] == "room":
     with col2:
         st.header(book.get("title", ""))
         st.write(f"著者: {', '.join(book.get('authors', []))}")
-        st.info("💡 ヒント: 待っている間に、この本の「一番好きなシーン」を思い出しておきましょう！")
-
-    st.divider()
     
-    # ここに将来、ビデオ通話機能がつきます
-    st.write("🎥 ビデオ通話エリア (開発中...)")
-    st.container(height=300, border=True).write("ここに相手の顔が映ります")
+    st.divider()
+
+    # --- 🎥 ビデオ通話機能 (Jitsi Meet) ---
+    st.subheader("参加準備ができました！")
+    
+    # 本のIDを使って、ユニークな部屋名を作る（例: BookTalk-Room-xxxxxxxx）
+    # これにより、同じ本を選んだ人同士だけが同じ部屋に入れます！
+    room_name = f"BookTalk-Room-{book['id']}"
+    jitsi_url = f"https://meet.jit.si/{room_name}"
+
+    st.info(f"現在の部屋ID: {room_name}")
+    st.write("カメラとマイクを許可して、会話に参加しましょう。")
+
+    # 1. 埋め込み画面（アプリの中で表示）
+    # ※ ブラウザの設定によっては、ここだとカメラが動かないことがあります
+    components.iframe(jitsi_url, height=600, scrolling=True)
+
+    # 2. 救済用のボタン（別タブで開く）
+    # 埋め込みでうまくいかない時は、こっちを押してもらう
+    st.markdown(f'''
+        <a href="{jitsi_url}" target="_blank" style="
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #FF4B4B;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        ">🚀 もし繋がらない場合は、ここを押して別タブで参加</a>
+    ''', unsafe_allow_html=True)
