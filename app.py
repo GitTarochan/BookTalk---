@@ -28,16 +28,29 @@ if st.session_state["page"] == "search":
     query = st.text_input("検索したい本やキーワードを入力してください")
     search_button = st.button("検索する")
 
-    # 検索処理
+    # 検索処理（ここを書き換える！）
     if search_button and query:
         url = f"https://www.googleapis.com/books/v1/volumes?q={query}"
-        response = requests.get(url)
-        data = response.json()
         
-        if "items" in data:
-            st.session_state["search_results"] = data["items"]
-        else:
-            st.session_state["search_results"] = []
+        try:
+            # 通信を試みる
+            response = requests.get(url, timeout=10)
+            
+            # ステータスコード（通信の結果）を表示してみる！
+            if response.status_code != 200:
+                st.error(f"通信エラー発生！ エラーコード: {response.status_code}")
+                st.write(response.text) # 詳しいエラー内容を表示
+            else:
+                data = response.json()
+                if "items" in data:
+                    st.session_state["search_results"] = data["items"]
+                    st.success(f"{len(data['items'])} 件見つかりました！") # 成功したらメッセージを出す
+                else:
+                    st.session_state["search_results"] = []
+                    st.warning("通信は成功したけど、本が見つかりませんでした。")
+                    
+        except Exception as e:
+            st.error(f"予期せぬエラーが発生しました: {e}")
 
     # 結果表示
     if st.session_state["search_results"]:
