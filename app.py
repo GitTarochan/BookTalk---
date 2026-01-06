@@ -30,7 +30,8 @@ if st.session_state["page"] == "search":
 
     # 検索処理（ここを書き換える！）
     if search_button and query:
-        url = f"https://www.googleapis.com/books/v1/volumes?q={query}"
+       # 末尾に &country=JP を追加
+        url = f"https://www.googleapis.com/books/v1/volumes?q={query}&country=JP"
         
         try:
             # 通信を試みる
