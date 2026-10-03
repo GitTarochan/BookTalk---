@@ -1,0 +1,32 @@
+<!-- NDL Search API / National Diet Library bibliographic metadata, CC BY 4.0.
+Reduced from a live response for parser tests. -->
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+  <channel>
+    <item>
+      <title>愛を想う : 作家が綴る心の手紙</title>
+      <link>https://ndlsearch.ndl.go.jp/books/R100000002-I000004232623</link>
+      <dc:creator>宇治土公, 三津子, 1935-2009</dc:creator>
+    </item>
+    <item>
+      <title>愛の手紙の決めゼリフ : 文豪はこうして心をつかんだ</title>
+      <link>https://ndlsearch.ndl.go.jp/books/R100000002-I030461020</link>
+      <dc:creator>中川, 越, 1954-</dc:creator>
+    </item>
+    <item>
+      <title>愛の手紙 : 文学者の様々な愛のかたち</title>
+      <link>https://ndlsearch.ndl.go.jp/books/R100000002-I030364616</link>
+      <dc:creator>日本近代文学館</dc:creator>
+    </item>
+    <item>
+      <title>愛の不等辺三角形 : 漱石小説論</title>
+      <link>https://ndlsearch.ndl.go.jp/books/R100000002-I027687151</link>
+      <dc:creator>吉村, 英夫, 1940-</dc:creator>
+    </item>
+    <item>
+      <title>芥川龍之介名作集 : 心に残るロングセラー : 小学生に読ませたい名作10話</title>
+      <link>https://ndlsearch.ndl.go.jp/books/R100000002-I026397111</link>
+      <dc:creator>芥川, 竜之介, 1892-1927</dc:creator>
+      <dc:creator>鬼塚, りつ子</dc:creator>
+    </item>
+  </channel>
+</rss>

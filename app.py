@@ -1,13 +1,26 @@
 import streamlit as st
-import requests
+import os
 import streamlit.components.v1 as components  # ← ★これを追加！
+from book_search import BookSearchError, search_books
 
 # ページ設定（ブラウザのタブ名などを設定）
 st.set_page_config(page_title="BookTalk", page_icon="📚")
 
+
+def google_books_api_key():
+    key = os.environ.get("GOOGLE_BOOKS_API_KEY", "")
+    if not key:
+        try:
+            key = st.secrets.get("GOOGLE_BOOKS_API_KEY", "")
+        except FileNotFoundError:
+            pass
+    return key.strip()
+
 # --- 🧠 セッションステート（記憶）の初期化 ---
 if "search_results" not in st.session_state:
     st.session_state["search_results"] = None
+if "search_source" not in st.session_state:
+    st.session_state["search_source"] = ""
 
 # 「今どのページにいるか」を覚える変数（初期値は 'search'）
 if "page" not in st.session_state:
@@ -25,34 +38,38 @@ if st.session_state["page"] == "search":
     st.title("📚 BookTalk - 本でつながる")
     st.write("読んだ本の感想を、ビデオ通話で今すぐ語り合おう。")
 
-    # 検索バー
-    query = st.text_input("検索したい本やキーワードを入力してください")
-    search_button = st.button("検索する")
+    with st.form("book_search"):
+        query = st.text_input("検索したい本やキーワードを入力してください")
+        search_button = st.form_submit_button("検索する")
 
-    # 検索処理（ここを書き換える！）
-    if search_button and query:
-       # 末尾に &country=JP を追加
-        url = f"https://www.googleapis.com/books/v1/volumes?q={query}&country=JP"
-        
-        try:
-            # 通信を試みる
-            response = requests.get(url, timeout=10)
-            
-            # ステータスコード（通信の結果）を表示してみる！
-            if response.status_code != 200:
-                st.error(f"通信エラー発生！ エラーコード: {response.status_code}")
-                st.write(response.text) # 詳しいエラー内容を表示
-            else:
-                data = response.json()
-                if "items" in data:
-                    st.session_state["search_results"] = data["items"]
-                    st.success(f"{len(data['items'])} 件見つかりました！") # 成功したらメッセージを出す
+    if search_button:
+        query = " ".join(query.split())
+        st.session_state["search_results"] = None
+        st.session_state["search_source"] = ""
+        if not query:
+            st.warning("本のタイトルやキーワードを入力してください。")
+        else:
+            try:
+                with st.spinner("本を検索しています…"):
+                    items, source = search_books(query, google_books_api_key())
+                st.session_state["search_results"] = items
+                st.session_state["search_source"] = source
+                if items:
+                    st.success(f"{len(items)} 件見つかりました！")
                 else:
-                    st.session_state["search_results"] = []
-                    st.warning("通信は成功したけど、本が見つかりませんでした。")
-                    
-        except Exception as e:
-            st.error(f"予期せぬエラーが発生しました: {e}")
+                    st.warning("本が見つかりませんでした。別のキーワードを試してください。")
+            except BookSearchError as error:
+                st.error(str(error))
+
+    source = st.session_state["search_source"]
+    if source == "Open Library":
+        st.caption("書籍情報：[Open Library](https://openlibrary.org/)")
+    elif source == "国立国会図書館サーチ":
+        st.caption("書籍情報：国立国会図書館サーチAPI（国立国会図書館作成書誌）。"
+                   "[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)。"
+                   "表示形式をBookTalk向けに変更しています。")
+    elif source:
+        st.caption(f"書籍情報：{source}")
 
     # 結果表示
     if st.session_state["search_results"]:
@@ -61,7 +78,7 @@ if st.session_state["page"] == "search":
         else:
             st.divider()
             for item in st.session_state["search_results"][:5]:
-                book = item["volumeInfo"]
+                book = dict(item["volumeInfo"])
                 book_id = item["id"]
                 # ★ここを追加！ (IDを本の情報の中に無理やり入れ込む)
                 book["id"] = book_id
@@ -79,6 +96,8 @@ if st.session_state["page"] == "search":
                     with col2:
                         st.subheader(title)
                         st.write(f"✍️ {', '.join(authors)}")
+                        if book.get("sourceUrl"):
+                            st.link_button("書籍情報を見る", book["sourceUrl"])
                         
                         # ★ここが変更点！
                         # ボタンを押したら「部屋」モードに切り替える
